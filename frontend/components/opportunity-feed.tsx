@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { getDemoRecommendations } from "@/lib/api";
+import { getDemoRecommendations, getPersonalRecommendations } from "@/lib/api";
+import { getSupabaseClient } from "@/lib/auth";
 import type { Recommendation } from "@/lib/types";
 
 const tabs = [
@@ -50,15 +51,34 @@ export default function OpportunityFeed() {
   const [items, setItems] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"demo" | "personal">("demo");
+  const [needsProfile, setNeedsProfile] = useState(false);
   const [activeTab, setActiveTab] = useState("ALL");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
     let mounted = true;
-    getDemoRecommendations()
-      .then((results) => { if (mounted) setItems(results); })
-      .catch(() => { if (mounted) setError("The demo API is unavailable. Start the backend, apply migrations, and seed demo data."); })
-      .finally(() => { if (mounted) setLoading(false); });
+    async function load() {
+      try {
+        const session = await getSupabaseClient()?.auth.getSession();
+        const token = session?.data.session?.access_token;
+        if (token) {
+          const personal = await getPersonalRecommendations(token);
+          if (personal) {
+            if (mounted) { setItems(personal); setMode("personal"); }
+            return;
+          }
+          if (mounted) setNeedsProfile(true);
+        }
+        const demo = await getDemoRecommendations();
+        if (mounted) setItems(demo);
+      } catch {
+        if (mounted) setError("The opportunity API is unavailable. Start the backend, apply migrations, and seed demo data.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    void load();
     return () => { mounted = false; };
   }, []);
 
@@ -70,11 +90,12 @@ export default function OpportunityFeed() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10"><Link href="/" className="flex items-center gap-3 text-lg font-bold text-slate-950"><span className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-white">✳</span>OpportunityOS</Link><span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">Demo workspace</span></div></header>
+      <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10"><Link href="/" className="flex items-center gap-3 text-lg font-bold text-slate-950"><span className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-white">✳</span>OpportunityOS</Link><div className="flex items-center gap-4"><Link href={mode === "personal" ? "/profile" : "/login"} className="text-sm font-bold text-indigo-700">{mode === "personal" ? "My profile" : "Sign in"}</Link><span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">{mode === "personal" ? "Personalized demo" : "Demo workspace"}</span></div></div></header>
       <main className="mx-auto max-w-7xl px-6 py-10 md:px-10">
         <div className="grid gap-9 lg:grid-cols-[15rem_minmax(0,1fr)]">
-          <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 lg:sticky lg:top-8"><p className="px-3 text-xs font-bold uppercase tracking-[.18em] text-slate-400">Discover</p><nav className="mt-4 grid gap-1" aria-label="Opportunity categories">{tabs.map((tab) => <button key={tab.value} type="button" onClick={() => setActiveTab(tab.value)} aria-current={activeTab === tab.value ? "page" : undefined} className={`rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${activeTab === tab.value ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`}>{tab.label}</button>)}</nav><div className="mt-7 rounded-2xl bg-slate-900 p-4 text-white"><p className="text-sm font-bold">Sample student</p><p className="mt-2 text-xs leading-5 text-slate-300">CS sophomore · Python, React, SQL · Interested in AI/ML and research · New York area</p></div></aside>
-          <div><div className="flex flex-wrap items-end justify-between gap-6"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-indigo-600">Discover your next step</p><h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">Opportunities for you</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Explore fictional examples ranked for a sample profile. Scores describe profile compatibility, not hiring odds.</p></div><span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600">{shown.length} results</span></div>
+          <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 lg:sticky lg:top-8"><p className="px-3 text-xs font-bold uppercase tracking-[.18em] text-slate-400">Discover</p><nav className="mt-4 grid gap-1" aria-label="Opportunity categories">{tabs.map((tab) => <button key={tab.value} type="button" onClick={() => setActiveTab(tab.value)} aria-current={activeTab === tab.value ? "page" : undefined} className={`rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${activeTab === tab.value ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`}>{tab.label}</button>)}</nav><div className="mt-7 rounded-2xl bg-slate-900 p-4 text-white"><p className="text-sm font-bold">{mode === "personal" ? "Your profile" : "Sample student"}</p><p className="mt-2 text-xs leading-5 text-slate-300">{mode === "personal" ? "Scores use the skills, interests, and preferences you saved." : "CS sophomore · Python, React, SQL · Interested in AI/ML and research · New York area"}</p></div></aside>
+          <div><div className="flex flex-wrap items-end justify-between gap-6"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-indigo-600">Discover your next step</p><h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">Opportunities for you</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{mode === "personal" ? "These fictional examples are ranked for your saved profile." : "Explore fictional examples ranked for a sample profile."} Scores describe profile compatibility, not hiring odds.</p></div><span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600">{shown.length} results</span></div>
+          {needsProfile && <p className="mt-7 rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm text-indigo-900">You are signed in. <Link href="/profile" className="font-bold underline">Create your profile</Link> to replace sample scores with your own.</p>}
           <label className="mt-8 block"><span className="sr-only">Search demo opportunities</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search titles, organizations, or keywords" className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" /></label>
           {loading ? <div className="mt-7 rounded-3xl border border-slate-200 bg-white p-10 text-sm text-slate-500" role="status">Loading demo opportunities…</div> : error ? <div className="mt-7 rounded-3xl border border-amber-200 bg-amber-50 p-8 text-sm text-amber-900" role="alert">{error}</div> : shown.length === 0 ? <div className="mt-7 rounded-3xl border border-slate-200 bg-white p-10 text-sm text-slate-600">No results in this demo. Try a different category or search term.</div> : <div className="mt-7 grid gap-5">{shown.map((item) => <RecommendationCard key={item.opportunity.id} item={item} />)}</div>}
           </div>

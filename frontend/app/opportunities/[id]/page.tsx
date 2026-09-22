@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { getDemoRecommendation } from "@/lib/api";
+import { getDemoRecommendation, getPersonalRecommendation } from "@/lib/api";
+import { getSupabaseClient } from "@/lib/auth";
 import type { Recommendation } from "@/lib/types";
 
 export default function OpportunityDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -12,7 +13,27 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     let mounted = true;
-    getDemoRecommendation(id).then((item) => { if (mounted) setRecommendation(item); }).catch(() => { if (mounted) setError(true); });
+    async function load() {
+      try {
+        const session = await getSupabaseClient()?.auth.getSession();
+        const token = session?.data.session?.access_token;
+        let item: Recommendation;
+        if (token) {
+          try {
+            item = await getPersonalRecommendation(id, token);
+          } catch (reason) {
+            if (!(reason instanceof Error) || !reason.message.includes("(404)")) throw reason;
+            item = await getDemoRecommendation(id);
+          }
+        } else {
+          item = await getDemoRecommendation(id);
+        }
+        if (mounted) setRecommendation(item);
+      } catch {
+        if (mounted) setError(true);
+      }
+    }
+    void load();
     return () => { mounted = false; };
   }, [id]);
 
