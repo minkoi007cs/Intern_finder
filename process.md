@@ -56,3 +56,13 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 - Checks run and results: Python source compilation, JSON manifest parsing, `git diff --check`, and four dependency-free ranking checks passed. Added security/validation tests, but they could not be executed because package registries were unavailable and dependencies are not installed. JWT/JWKS design and current Supabase client usage were checked against official Supabase documentation; PyJWKClient API against official PyJWT documentation.
 - Limitations / risks: No live Supabase project credentials or database are configured, so sign-in, migrations, RLS, profile persistence, and browser build remain unverified. Course/project profile fields, resume parsing, search/map, save/application tracker, and live data ingestion remain later phases. The real-profile feed currently ranks fictional demo listings.
 - Next step: Commit this profile increment. With dependency/network access and a Supabase project, run migrations, tests, build, and an owner-isolation smoke test; then proceed with resume and tracking milestones.
+
+### 2026-09-22 — chore: connect existing GitHub repository history
+
+- Roadmap phase / status: Repository publishing preparation; application milestone status unchanged.
+- Intent: Integrate the existing `minkoi007cs/Intern_finder` main branch before pushing, preserving its initial commit without force-pushing.
+- Files changed: `process.md`; the merge records the remote initial commit (README title only) as a parent while retaining the detailed OpportunityOS README.
+- Behavior or architecture changed: None.
+- Checks run and results: Confirmed remote `main` has one commit (`2d61f1c`) containing only `README.md`; merged with unrelated histories successfully and inspected the retained README.
+- Limitations / risks: The deployment and runtime checks are still pending.
+- Next step: Commit the merge, push `main`, and configure Vercel deployment.
