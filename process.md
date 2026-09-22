@@ -36,3 +36,13 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 - Checks run and results: Python source compilation passed using a writable bytecode cache; frontend JSON config parsed successfully. `npm install --offline` failed because cache metadata was incomplete. Online npm/pip installation could not reach the package registries, so the frontend build, API startup, and pytest could not yet run.
 - Limitations / risks: Dependencies are not installed; database schema/migration and a working opportunity feed are next. The current landing demo CTA points to a future page.
 - Next step: Commit the scaffold, then implement the opportunity model, marked demo records, deterministic ranking, and feed in focused changes.
+
+### 2026-09-22 — feat: add demo catalog and explainable recommendation feed
+
+- Roadmap phase / status: Phases 3 and 4, in progress as a read-only demo; Phase 1 runtime gate remains open.
+- Intent: Make the planned opportunity and ranking architecture concrete without exposing unauthenticated personal data.
+- Files changed: `backend/app/models/opportunity.py`, first Alembic migration, demo seed command, opportunity response schemas/routes/services, `backend/app/ml/ranking.py`, ranking checks, frontend feed/detail routes, shared API types/client, `README.md`, `tech.md`, `process.md`, and frontend dependency manifest.
+- Behavior or architecture changed: Added normalized organizations/skills/opportunities tables, an idempotent 40-record fictional seed, demo-only list/detail/recommendation routes, and deterministic weighted scoring with evidence and skill gaps. The frontend displays a searchable/category-filtered sample feed and detail view with a compatibility explanation. Updated Next.js dependency to the official August 2026 security release version 16.3.3; the API remains read-only for the demo.
+- Checks run and results: Python source compilation passed. Four dependency-free ranking checks passed (alias normalization, skill gaps, neutral empty requirements, and location/distance). Dependency installation remains unavailable, so the database migration, HTTP routes, and frontend build have not been run. The Next.js version choice was checked against the official release advisory at https://nextjs.org/blog.
+- Limitations / risks: No sign-in or persisted student profile yet; ranking uses a clearly labeled sample persona. Demo opportunities are fictional and have no application link. Package installation and end-to-end verification require registry access.
+- Next step: Commit this vertical demo slice; once dependencies can be installed, run migration/seed, API tests, and frontend build, then add authenticated editable profiles.
