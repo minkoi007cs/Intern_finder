@@ -172,8 +172,8 @@ Milestones are ordered so each adds a usable capability. Status is changed only 
 
 | Phase | Deliverable | Acceptance gate | Status |
 | --- | --- | --- | --- |
-| 0 — Planning | This architecture, schema/API contracts, roadmap, process log and Git repository | docs internally consistent; first log entry committed | Planned |
-| 1 — Foundation | Next.js/TypeScript/Tailwind shell, FastAPI API, config, DB connection, migration, `/health`, landing, README/.env.example | frontend builds; API starts; migration applies | Planned |
+| 0 — Planning | This architecture, schema/API contracts, roadmap, process log and Git repository | docs internally consistent; first log entry committed | Complete |
+| 1 — Foundation | Next.js/TypeScript/Tailwind shell, FastAPI API, config, DB connection, migration, `/health`, landing, README/.env.example | frontend builds; API starts; migration applies | In progress |
 | 2 — Identity/profile | Supabase email + Google sign-in, owner auth, onboarding/edit profile, skills/courses/projects | owner isolation tests; editable profile end to end | Planned |
 | 3 — Opportunity catalog | normalized schema, permitted/manual ingestion, demo seed, list/detail, provenance, duplicate and expiry rules | seed counts; API pagination; no stale/demo ambiguity | Planned |
 | 4 — Recommendations/feed | normalized skills, configurable weighted scorer, explanation, match/skill gaps, personalized feed | scorer unit tests and feed UI; score wording correct | Planned |
