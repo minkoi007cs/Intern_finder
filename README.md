@@ -1,3 +1,9 @@
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.11-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-App_Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_Postgres-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Alembic](https://img.shields.io/badge/Alembic-Migrations-red?style=for-the-badge)](https://alembic.sqlalchemy.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+
 # OpportunityOS
 
 AI-assisted opportunity discovery for university students. The current prototype includes the architecture, API foundation, a responsive landing page, a demo opportunity feed with explainable compatibility scores, and a Supabase-backed private student profile. See [tech.md](./tech.md) for the complete design and roadmap, and [process.md](./process.md) for the commit log.
