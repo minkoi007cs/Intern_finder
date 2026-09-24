@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const categories = [
-  { icon: "✳", title: "Internships & jobs", text: "Find early-career roles that fit what you know now." },
+  { icon: "✳", title: "Internships", text: "Find early-career roles that fit what you know now." },
   { icon: "◈", title: "Research", text: "Discover labs, assistant roles, and undergraduate programs." },
   { icon: "✦", title: "Beyond work", text: "Explore scholarships, hackathons, and local opportunities." },
 ];
@@ -10,13 +10,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8fafc]">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-10">
-        <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-slate-900" aria-label="OpportunityOS home">
+        <Link href="/" className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:gap-3 sm:text-xl" aria-label="OpportunityOS home">
           <span className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-lg text-white">✳</span>
           OpportunityOS
         </Link>
         <nav className="flex items-center gap-4 text-sm font-semibold text-slate-600" aria-label="Primary navigation">
           <a href="#how-it-works" className="hidden hover:text-indigo-600 sm:inline">How it works</a>
-          <Link href="/opportunities" className="rounded-full bg-slate-900 px-5 py-3 text-white transition hover:bg-indigo-600">Explore demo</Link>
+          <Link href="/opportunities" className="rounded-full bg-slate-900 px-4 py-2.5 text-xs text-white transition hover:bg-indigo-600 sm:px-5 sm:py-3 sm:text-sm">Explore demo</Link>
         </nav>
       </header>
 
@@ -26,7 +26,7 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[1.05fr_.95fr]">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[.15em] text-indigo-700 shadow-sm"><span className="size-2 rounded-full bg-indigo-500" /> A better way to discover what is next</span>
-            <h1 className="mt-8 max-w-2xl text-5xl font-bold leading-[1.08] tracking-[-.055em] text-slate-950 md:text-7xl">Your potential is bigger than one job board.</h1>
+            <h1 className="mt-8 max-w-2xl text-4xl font-bold leading-[1.08] tracking-[-.055em] text-slate-950 sm:text-5xl md:text-7xl">Your potential is bigger than one job board.</h1>
             <p className="mt-7 max-w-xl text-lg leading-8 text-slate-600">Internships, research, scholarships, and more—brought together and matched to your skills, interests, and goals. See why each opportunity fits and what you can do next.</p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link href="/opportunities" className="rounded-full bg-indigo-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700">Explore the demo <span aria-hidden="true">→</span></Link>

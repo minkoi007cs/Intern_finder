@@ -2,6 +2,8 @@
 
 AI-assisted opportunity discovery for university students. The current prototype includes the architecture, API foundation, a responsive landing page, a demo opportunity feed with explainable compatibility scores, and a Supabase-backed private student profile. See [tech.md](./tech.md) for the complete design and roadmap, and [process.md](./process.md) for the commit log.
 
+The catalog contains **fictional examples only**. It does not ingest live openings or provide application links. See [AUDIT.md](./AUDIT.md) for the UI, UX and logic review, fixes and remaining product limitations.
+
 ## Local development
 
 Requirements: Node.js 22 or later, Python 3.11 or later. PostgreSQL is the target database; the default SQLite URL is for local development only.
@@ -26,6 +28,17 @@ npm run dev
 ```
 
 Open `http://localhost:3000` for the landing page and `/opportunities` for the demo feed. The API health endpoint is `http://localhost:8000/api/v1/health`, and OpenAPI documentation is at `http://localhost:8000/docs`. The seed command is idempotent and adds 20 internship, 10 research, 5 scholarship, and 5 hackathon **fictional** records.
+
+Rerun the seed command periodically to refresh the dates of existing demo records.
+
+## Verification
+
+```bash
+cd backend && python -m pytest -q
+cd ../frontend && npm ci && npm run typecheck && npm run build
+```
+
+CI runs these checks for pushes and pull requests.
 
 ## Configuration
 

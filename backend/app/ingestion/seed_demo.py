@@ -55,6 +55,11 @@ def seed_demo(session: Session) -> int:
             external_id = f"demo-{kind.lower()}-{number:02d}"
             existing = session.scalar(select(Opportunity).where(Opportunity.external_id == external_id))
             if existing is not None:
+                # Keep the fictional catalog usable when the seed command is rerun
+                # weeks after its first installation.
+                if existing.is_demo:
+                    existing.posted_date = today - timedelta(days=number % 14)
+                    existing.deadline = today + timedelta(days=30 + number)
                 continue
             required, preferred, tags = SKILL_SETS[(number - 1) % len(SKILL_SETS)]
             city, latitude, longitude = LOCATIONS[(number - 1) % len(LOCATIONS)]
