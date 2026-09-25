@@ -41,7 +41,7 @@ def _to_response(profile: StudentProfile) -> ProfileResponse:
 
 @router.get("/profile", response_model=ProfileResponse)
 def get_profile(user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)) -> ProfileResponse:
-    profile = db.scalar(_profile_query(user.id))
+    profile = db.scalar(_profile_query(str(user.id)))
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not created")
     return _to_response(profile)
@@ -49,16 +49,17 @@ def get_profile(user: CurrentUser = Depends(get_current_user), db: Session = Dep
 
 @router.put("/profile", response_model=ProfileResponse)
 def put_profile(data: ProfileInput, user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)) -> ProfileResponse:
-    account = db.get(User, user.id)
+    uid = str(user.id)
+    account = db.get(User, uid)
     if account is None:
-        account = User(id=user.id, email=user.email)
+        account = User(id=uid, email=user.email)
         db.add(account)
     elif user.email and account.email != user.email:
         account.email = user.email
 
-    profile = db.scalar(_profile_query(user.id))
+    profile = db.scalar(_profile_query(uid))
     if profile is None:
-        profile = StudentProfile(user_id=user.id, full_name=data.full_name, university=data.university, major=data.major, academic_year=data.academic_year)
+        profile = StudentProfile(user_id=uid, full_name=data.full_name, university=data.university, major=data.major, academic_year=data.academic_year)
         db.add(profile)
     for field in (
         "full_name", "university", "major", "minor", "graduation_year", "academic_year", "location",
@@ -83,5 +84,5 @@ def put_profile(data: ProfileInput, user: CurrentUser = Depends(get_current_user
             db.flush()
         profile.skills.append(StudentSkill(skill=skill, source="manually_added"))
     db.commit()
-    saved = db.scalar(_profile_query(user.id))
+    saved = db.scalar(_profile_query(uid))
     return _to_response(saved)

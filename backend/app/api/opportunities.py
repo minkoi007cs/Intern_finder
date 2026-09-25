@@ -102,7 +102,7 @@ def personal_recommendations(
 ) -> list[RecommendationResponse]:
     profile = db.scalar(
         select(StudentProfile)
-        .where(StudentProfile.user_id == user.id)
+        .where(StudentProfile.user_id == str(user.id))
         .options(selectinload(StudentProfile.skills).selectinload(StudentSkill.skill))
     )
     if profile is None:
@@ -132,7 +132,7 @@ def personal_recommendation(
 ) -> RecommendationResponse:
     profile = db.scalar(
         select(StudentProfile)
-        .where(StudentProfile.user_id == user.id)
+        .where(StudentProfile.user_id == str(user.id))
         .options(selectinload(StudentProfile.skills).selectinload(StudentSkill.skill))
     )
     if profile is None:

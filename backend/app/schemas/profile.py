@@ -54,4 +54,4 @@ class ProfileInput(BaseModel):
 
 
 class ProfileResponse(ProfileInput):
-    user_id: UUID
+    user_id: str

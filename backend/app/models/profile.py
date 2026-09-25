@@ -17,7 +17,7 @@ def utcnow() -> datetime:
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
     email: Mapped[str | None] = mapped_column(String(320), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     profile: Mapped[StudentProfile | None] = relationship(back_populates="user", uselist=False)
@@ -26,7 +26,7 @@ class User(Base):
 class StudentProfile(Base):
     __tablename__ = "student_profiles"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     full_name: Mapped[str] = mapped_column(String(160), nullable=False)
     university: Mapped[str] = mapped_column(String(200), nullable=False)
     major: Mapped[str] = mapped_column(String(160), nullable=False)
@@ -53,7 +53,7 @@ class StudentProfile(Base):
 class StudentSkill(Base):
     __tablename__ = "student_skills"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("student_profiles.user_id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(64), ForeignKey("student_profiles.user_id", ondelete="CASCADE"), primary_key=True)
     skill_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("skills.id"), primary_key=True)
     source: Mapped[str] = mapped_column(String(40), nullable=False, default="manually_added")
 

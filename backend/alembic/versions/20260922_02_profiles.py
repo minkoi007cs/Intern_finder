@@ -16,13 +16,13 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         "users",
-        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True),
+        sa.Column("id", sa.String(64), primary_key=True),
         sa.Column("email", sa.String(320), unique=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_table(
         "student_profiles",
-        sa.Column("user_id", sa.Uuid(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("user_id", sa.String(64), sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
         sa.Column("full_name", sa.String(160), nullable=False),
         sa.Column("university", sa.String(200), nullable=False),
         sa.Column("major", sa.String(160), nullable=False),
@@ -44,14 +44,21 @@ def upgrade() -> None:
     )
     op.create_table(
         "student_skills",
-        sa.Column("user_id", sa.Uuid(as_uuid=True), sa.ForeignKey("student_profiles.user_id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("user_id", sa.String(64), sa.ForeignKey("student_profiles.user_id", ondelete="CASCADE"), primary_key=True),
         sa.Column("skill_id", sa.Uuid(as_uuid=True), sa.ForeignKey("skills.id"), primary_key=True),
         sa.Column("source", sa.String(40), nullable=False),
     )
     if op.get_bind().dialect.name == "postgresql":
         for table in ("users", "student_profiles", "student_skills"):
             op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")
-            op.execute(f"REVOKE ALL ON TABLE {table} FROM anon, authenticated")
+            op.execute(f"""
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+                        EXECUTE 'REVOKE ALL ON TABLE {table} FROM anon, authenticated';
+                    END IF;
+                END $$;
+            """)
 
 
 def downgrade() -> None:
