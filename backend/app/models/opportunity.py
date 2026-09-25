@@ -14,7 +14,7 @@ def utcnow() -> datetime:
 
 
 class Organization(Base):
-    __tablename__ = "organizations"
+    __tablename__ = "intern_organizations"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
@@ -25,7 +25,7 @@ class Organization(Base):
 
 
 class Skill(Base):
-    __tablename__ = "skills"
+    __tablename__ = "intern_skills"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -34,25 +34,25 @@ class Skill(Base):
 
 
 class OpportunitySkill(Base):
-    __tablename__ = "opportunity_skills"
+    __tablename__ = "intern_opportunity_skills"
     __table_args__ = (UniqueConstraint("opportunity_id", "skill_id", name="uq_opportunity_skill"),)
 
-    opportunity_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("opportunities.id", ondelete="CASCADE"), primary_key=True)
-    skill_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("skills.id"), primary_key=True)
+    opportunity_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("intern_opportunities.id", ondelete="CASCADE"), primary_key=True)
+    skill_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("intern_skills.id"), primary_key=True)
     required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     skill: Mapped[Skill] = relationship()
     opportunity: Mapped["Opportunity"] = relationship(back_populates="opportunity_skills")
 
 
 class Opportunity(Base):
-    __tablename__ = "opportunities"
+    __tablename__ = "intern_opportunities"
     __table_args__ = (
         Index("ix_opportunities_type_status_deadline", "opportunity_type", "status", "deadline"),
         Index("ix_opportunities_location", "latitude", "longitude"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("intern_organizations.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(250), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     opportunity_type: Mapped[str] = mapped_column(String(40), nullable=False)

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="internBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="100%" stop-color="#0f2b48"/>
+    </linearGradient>
+    <linearGradient id="compass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#internBg)" stroke="url(#compass)" stroke-width="2"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#1e3a5f" stroke-width="2"/>
+  <circle cx="32" cy="32" r="11" fill="none" stroke="url(#compass)" stroke-width="2.5"/>
+  <polygon points="32,16 35,28 47,32 35,36 32,48 29,36 17,32 29,28" fill="#38bdf8"/>
+  <circle cx="32" cy="32" r="3" fill="#ffffff"/>
+</svg>
