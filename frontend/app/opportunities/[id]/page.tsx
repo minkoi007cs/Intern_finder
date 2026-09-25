@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { getDemoRecommendation, getPersonalRecommendation } from "@/lib/api";
-import { getSupabaseClient } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import type { Recommendation } from "@/lib/types";
 
 function readableDate(value: string | null): string {
@@ -23,12 +23,12 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
     setRecommendation(null);
     async function load() {
       try {
-        const token = (await getSupabaseClient()?.auth.getSession())?.data.session?.access_token;
+        const { signedIn } = await getSession();
         let item: Recommendation;
         let nextMode: "demo" | "personal" = "demo";
-        if (token) {
+        if (signedIn) {
           try {
-            item = await getPersonalRecommendation(id, token);
+            item = await getPersonalRecommendation(id);
             nextMode = "personal";
           } catch (reason) {
             if (!(reason instanceof Error) || !reason.message.includes("(404)")) throw reason;

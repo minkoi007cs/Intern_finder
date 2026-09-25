@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { getSupabaseClient } from "@/lib/auth";
+import { getSession, signInUrl } from "@/lib/auth";
 import { getProfile, putProfile, type ProfilePayload } from "@/lib/profile";
 
 const emptyProfile: ProfilePayload = {
@@ -18,7 +17,6 @@ const listFromText = (text: string) => Array.from(new Set(text.split(",").map((v
 const inputClass = "mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [profile, setProfile] = useState<ProfilePayload>(emptyProfile);
   const [skillsText, setSkillsText] = useState("");
   const [interestsText, setInterestsText] = useState("");
@@ -32,10 +30,10 @@ export default function ProfilePage() {
     let mounted = true;
     async function load() {
       try {
-        const token = (await getSupabaseClient()?.auth.getSession())?.data.session?.access_token;
-        if (!token) return;
+        const { signedIn: hasSession } = await getSession();
+        if (!hasSession) return;
         if (mounted) setSignedIn(true);
-        const saved = await getProfile(token);
+        const saved = await getProfile();
         if (saved && mounted) {
           setProfile(saved);
           setSkillsText(saved.skills.join(", "));
@@ -59,9 +57,7 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage("");
     try {
-      const token = (await getSupabaseClient()?.auth.getSession())?.data.session?.access_token;
-      if (!token) throw new Error("Your session has expired. Sign in again to save your profile.");
-      const saved = await putProfile(token, { ...profile, skills: listFromText(skillsText), interests: listFromText(interestsText) });
+      const saved = await putProfile({ ...profile, skills: listFromText(skillsText), interests: listFromText(interestsText) });
       setProfile(saved);
       setSkillsText(saved.skills.join(", "));
       setInterestsText(saved.interests.join(", "));
@@ -73,30 +69,17 @@ export default function ProfilePage() {
     }
   }
 
-  async function signOut() {
-    setSaving(true);
-    try {
-      const { error } = await getSupabaseClient()!.auth.signOut();
-      if (error) throw error;
-      router.push("/opportunities");
-    } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "Could not sign out.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   function update<K extends keyof ProfilePayload>(key: K, value: ProfilePayload[K]) {
     setProfile((current) => ({ ...current, [key]: value }));
   }
 
   if (loading) return <main className="p-10 text-slate-600" role="status">Loading profile…</main>;
-  if (!signedIn) return <main className="grid min-h-screen place-items-center bg-slate-50 p-6"><div className="max-w-md rounded-3xl bg-white p-8 text-center shadow-sm"><h1 className="text-2xl font-bold">Sign in to build your profile</h1><p className="mt-3 text-sm text-slate-600">Your profile is private and tied to your account.</p><Link href="/login" className="mt-6 inline-block rounded-full bg-indigo-600 px-6 py-3 font-bold text-white">Go to sign in</Link></div></main>;
+  if (!signedIn) return <main className="grid min-h-screen place-items-center bg-slate-50 p-6"><div className="max-w-md rounded-3xl bg-white p-8 text-center shadow-sm"><h1 className="text-2xl font-bold">Sign in to build your profile</h1><p className="mt-3 text-sm text-slate-600">Your profile is private and tied to your account.</p><a href={signInUrl()} className="mt-6 inline-block rounded-full bg-indigo-600 px-6 py-3 font-bold text-white">Sign in</a></div></main>;
 
   return (
     <main className="min-h-screen bg-[#f8fafc] px-6 py-10 md:px-10">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-center justify-between gap-4"><Link href="/opportunities" className="text-sm font-bold text-indigo-700">← Opportunity feed</Link><button type="button" disabled={saving} onClick={signOut} className="text-sm font-bold text-slate-700 hover:text-indigo-700 disabled:opacity-50">Sign out</button></div>
+        <div className="flex items-center justify-between gap-4"><Link href="/opportunities" className="text-sm font-bold text-indigo-700">← Opportunity feed</Link><form method="post" action="/auth/logout"><button type="submit" disabled={saving} className="text-sm font-bold text-slate-700 hover:text-indigo-700 disabled:opacity-50">Sign out</button></form></div>
         <h1 className="mt-8 text-4xl font-bold tracking-tight text-slate-950">Your student profile</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">Tell us what you have learned and what you want to explore. You can edit this anytime.</p>
         {loadFailed && <p className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900" role="alert">{message} Profile editing is unavailable until it loads successfully.</p>}

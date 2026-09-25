@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getDemoRecommendations, getPersonalRecommendations } from "@/lib/api";
-import { getSupabaseClient } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import type { Recommendation } from "@/lib/types";
 
 const tabs = [
@@ -66,11 +66,10 @@ export default function OpportunityFeed() {
       setLoading(true);
       setError(null);
       try {
-        const session = await getSupabaseClient()?.auth.getSession();
-        const token = session?.data.session?.access_token;
-        if (mounted) { setSignedIn(Boolean(token)); setNeedsProfile(false); }
-        if (token) {
-          const personal = await getPersonalRecommendations(token);
+        const { signedIn: hasSession } = await getSession();
+        if (mounted) { setSignedIn(hasSession); setNeedsProfile(false); }
+        if (hasSession) {
+          const personal = await getPersonalRecommendations();
           if (personal) {
             if (mounted) { setItems(personal); setMode("personal"); }
             return;

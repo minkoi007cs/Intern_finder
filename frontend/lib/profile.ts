@@ -1,4 +1,4 @@
-import { apiBaseUrl } from "./api";
+import { backendFetch } from "./auth";
 
 export type ProfilePayload = {
   full_name: string;
@@ -19,17 +19,17 @@ export type ProfilePayload = {
   skills: string[];
 };
 
-export async function getProfile(token: string): Promise<ProfilePayload | null> {
-  const response = await fetch(`${apiBaseUrl}/profile`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+export async function getProfile(): Promise<ProfilePayload | null> {
+  const response = await backendFetch("/profile");
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Could not load profile (${response.status})`);
   return (await response.json()) as ProfilePayload;
 }
 
-export async function putProfile(token: string, data: ProfilePayload): Promise<ProfilePayload> {
-  const response = await fetch(`${apiBaseUrl}/profile`, {
+export async function putProfile(data: ProfilePayload): Promise<ProfilePayload> {
+  const response = await backendFetch("/profile", {
     method: "PUT",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error(`Could not save profile (${response.status})`);
