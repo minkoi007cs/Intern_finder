@@ -1,10 +1,9 @@
 import { backendFetch } from "./auth";
 import type { FeedFilters, Opportunity, Place, Recommendation, RecommendationPage } from "./types";
 
-export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-
-async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, { cache: "no-store" });
+/** Public, read-only backend routes — same-origin through /api/backend (see its route.ts). */
+async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`/api/backend${path}`, { cache: "no-store", credentials: "same-origin", signal });
   if (!response.ok) throw new Error(`API request failed (${response.status})`);
   return (await response.json()) as T;
 }
@@ -24,8 +23,8 @@ export function getDemoRecommendations(filters: FeedFilters, offset = 0): Promis
 }
 
 /** City suggestions for the profile form (offline list on the backend). */
-export async function searchPlaces(q: string): Promise<{ items: Place[]; attribution: string }> {
-  return getJson<{ items: Place[]; attribution: string }>(`/places?${new URLSearchParams({ q, limit: "8" }).toString()}`);
+export async function searchPlaces(q: string, signal?: AbortSignal): Promise<{ items: Place[]; attribution: string }> {
+  return getJson<{ items: Place[]; attribution: string }>(`/places?${new URLSearchParams({ q, limit: "8" }).toString()}`, signal);
 }
 
 export function getOpportunity(id: string): Promise<Opportunity> {

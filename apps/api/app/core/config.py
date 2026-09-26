@@ -1,6 +1,13 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# apps/api/app/core/config.py → apps/api and the repo root. Absolute paths, so the same .env is read
+# whether uvicorn, alembic or pytest starts from the repo root or from apps/api. Later files win.
+_API_DIR = Path(__file__).resolve().parents[2]
+_ENV_FILES = (_API_DIR.parent.parent / ".env", _API_DIR / ".env")
 
 
 class Settings(BaseSettings):
@@ -18,7 +25,7 @@ class Settings(BaseSettings):
     dev_user_id: str = "dev-user"
     dev_user_email: str = ""
 
-    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
+    model_config = SettingsConfigDict(env_file=_ENV_FILES, extra="ignore")
 
 
 @lru_cache

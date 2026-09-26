@@ -28,19 +28,19 @@ export default function CityPicker({ value, located, onType, onPick, className }
       setOptions([]);
       return;
     }
-    let current = true;
+    const controller = new AbortController();
     const timer = setTimeout(() => {
-      searchPlaces(value)
+      searchPlaces(value, controller.signal)
         .then((result) => {
-          if (!current) return;
           setOptions(result.items);
           setAttribution(result.attribution);
           setActive(-1);
           setOpen(true);
         })
-        .catch(() => { if (current) setOptions([]); });
+        .catch(() => { if (!controller.signal.aborted) setOptions([]); });
     }, 200);
-    return () => { current = false; clearTimeout(timer); };
+    // Typing again cancels the pending request, so an old answer can never land after a newer one.
+    return () => { controller.abort(); clearTimeout(timer); };
   }, [value]);
 
   function pick(place: Place) {

@@ -12,6 +12,20 @@ import { backendUrl, decodeSession, SESSION_COOKIE } from "@/lib/hub";
 export const dynamic = "force-dynamic";
 
 const SAFE_SEGMENT = /^[A-Za-z0-9_-]{1,128}$/;
+
+/**
+ * Read-only routes anyone may see (the sample feed, the catalog, city suggestions). They go through
+ * this same proxy so the browser only ever talks to this origin — no backend URL baked into the
+ * client bundle, no CORS. They are forwarded WITHOUT a token, signed in or not.
+ */
+function isPublic(method: string, path: string[]): boolean {
+  if (method !== "GET") return false;
+  const [head, ...rest] = path;
+  if (head === "places") return rest.length === 0;
+  if (head === "opportunities") return rest.length <= 1;
+  if (head === "demo") return rest[0] === "recommendations" && rest.length <= 2;
+  return false;
+}
 const EXPIRY_SKEW_MS = 5_000;
 
 async function forward(request: NextRequest, context: { params: Promise<{ path: string[] }> }): Promise<Response> {
@@ -20,14 +34,17 @@ async function forward(request: NextRequest, context: { params: Promise<{ path: 
     return NextResponse.json({ detail: "Not found" }, { status: 404 });
   }
 
-  const session = decodeSession(request.cookies.get(SESSION_COOKIE)?.value);
-  if (session === null) return NextResponse.json({ detail: "Sign in required" }, { status: 401 });
-  if (session.expiresAt - Date.now() < EXPIRY_SKEW_MS) {
-    return NextResponse.json({ detail: "Session expired", expired: true }, { status: 401 });
+  const headers: Record<string, string> = { accept: "application/json" };
+  if (!isPublic(request.method, path)) {
+    const session = decodeSession(request.cookies.get(SESSION_COOKIE)?.value);
+    if (session === null) return NextResponse.json({ detail: "Sign in required" }, { status: 401 });
+    if (session.expiresAt - Date.now() < EXPIRY_SKEW_MS) {
+      return NextResponse.json({ detail: "Session expired", expired: true }, { status: 401 });
+    }
+    headers.authorization = `Bearer ${session.accessToken}`;
   }
 
   const target = `${backendUrl()}/${path.join("/")}${new URL(request.url).search}`;
-  const headers: Record<string, string> = { authorization: `Bearer ${session.accessToken}`, accept: "application/json" };
   const contentType = request.headers.get("content-type");
   if (contentType) headers["content-type"] = contentType;
 
