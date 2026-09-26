@@ -33,12 +33,13 @@ def test_reseeding_refreshes_deadlines_without_duplicating_examples():
         client = TestClient(app)
         feed = client.get("/api/v1/demo/recommendations?limit=40")
         assert feed.status_code == 200
-        assert len(feed.json()) == 40
-        assert all(item["opportunity"]["is_demo"] for item in feed.json())
-        detail_id = feed.json()[0]["opportunity"]["id"]
+        page = feed.json()
+        assert page["total"] == 40 and len(page["items"]) == 40 and page["next_offset"] is None
+        assert all(item["opportunity"]["is_demo"] for item in page["items"])
+        detail_id = page["items"][0]["opportunity"]["id"]
         detail = client.get(f"/api/v1/demo/recommendations/{detail_id}")
         assert detail.status_code == 200
-        assert detail.json()["match"]["overall_score"] == feed.json()[0]["match"]["overall_score"]
+        assert detail.json()["match"]["overall_score"] == page["items"][0]["match"]["overall_score"]
         filtered = client.get("/api/v1/opportunities?opportunity_type=RESEARCH&remote_only=true")
         assert filtered.status_code == 200
         assert filtered.json()["total"] > 0

@@ -50,3 +50,11 @@ class OpportunityPage(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class RecommendationPage(BaseModel):
+    items: list[RecommendationResponse]
+    total: int
+    limit: int
+    offset: int
+    next_offset: int | None

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { getSession, signInUrl } from "@/lib/auth";
 import { getProfile, putProfile, type ProfilePayload } from "@/lib/profile";
+import CityPicker from "@/components/city-picker";
 
 const emptyProfile: ProfilePayload = {
   full_name: "", university: "", major: "", minor: null, graduation_year: null,
@@ -100,8 +101,14 @@ export default function ProfilePage() {
             <div className="flex flex-wrap gap-3">{types.map((type) => <label key={type} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700"><input type="checkbox" checked={profile.preferred_types.includes(type)} onChange={(event) => update("preferred_types", event.target.checked ? [...profile.preferred_types, type] : profile.preferred_types.filter((item) => item !== type))} />{type.replaceAll("_", " ")}</label>)}</div>
             <label className="flex items-center gap-3 text-sm font-semibold text-slate-700"><input type="checkbox" checked={profile.preferred_remote} onChange={(event) => update("preferred_remote", event.target.checked)} />Prefer remote opportunities</label>
             <p className="text-xs leading-5 text-slate-500">This preference affects your match score. Use “Remote only” in the feed to hide on-site examples.</p>
-            <label className="block text-sm font-semibold text-slate-700">Location<input maxLength={200} value={profile.location ?? ""} onChange={(event) => update("location", event.target.value || null)} placeholder="New York, NY" className={inputClass} /></label>
-            <p className="text-xs leading-5 text-slate-500">Location text is saved for your profile. Distance scoring requires coordinates, which this form does not collect yet.</p>
+            <CityPicker
+              value={profile.location ?? ""}
+              located={profile.latitude !== null && profile.longitude !== null}
+              onType={(text) => setProfile((current) => ({ ...current, location: text || null, latitude: null, longitude: null }))}
+              onPick={(place) => setProfile((current) => ({ ...current, location: place.label, latitude: place.latitude, longitude: place.longitude }))}
+              className={inputClass}
+            />
+            {profile.latitude !== null && <label className="block text-sm font-semibold text-slate-700">Search radius<select value={profile.search_radius_miles} onChange={(event) => update("search_radius_miles", Number(event.target.value))} className={`${inputClass} bg-white`}>{[10, 25, 50, 100, 250, 500].map((miles) => <option key={miles} value={miles}>{miles} miles</option>)}</select></label>}
           </section>
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-7"><button disabled={saving} className="rounded-full bg-indigo-600 px-7 py-3 font-bold text-white hover:bg-indigo-700 disabled:opacity-50">{saving ? "Saving…" : "Save profile"}</button>{message && <p className="text-sm text-slate-700" role="status">{message}</p>}</div>
         </form>}

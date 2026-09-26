@@ -28,3 +28,20 @@ export type Match = {
 };
 
 export type Recommendation = { opportunity: Opportunity; match: Match };
+
+export type RecommendationPage = {
+  items: Recommendation[];
+  total: number;
+  limit: number;
+  offset: number;
+  next_offset: number | null;
+};
+
+export type FeedFilters = {
+  q: string;
+  opportunityType: string;
+  remoteOnly: boolean;
+  sort: "match" | "deadline";
+};
+
+export type Place = { label: string; city: string; state: string; latitude: number; longitude: number };

@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.ml.ranking import normalize_skill
 from app.models import Skill, StudentProfile, StudentSkill, User
 from app.schemas.profile import ProfileInput, ProfileResponse
+from app.services.places import resolve
 
 router = APIRouter(tags=["profile"])
 
@@ -67,6 +68,13 @@ def put_profile(data: ProfileInput, user: CurrentUser = Depends(get_current_user
         "interests", "career_goals", "research_interests",
     ):
         setattr(profile, field, getattr(data, field))
+    # A known city ("Kent, OH") sets the coordinates used for distance scoring. Anything else keeps
+    # what the client sent (normally none) — distance then counts as neutral, never as a guess.
+    place = resolve(data.location)
+    if place is not None:
+        profile.location = place.label
+        profile.latitude = place.latitude
+        profile.longitude = place.longitude
     db.flush()
 
     desired = {normalize_skill(value): value for value in data.skills}

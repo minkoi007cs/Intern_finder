@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.health import router as health_router
 from app.api.opportunities import router as opportunities_router
+from app.api.places import router as places_router
 from app.api.profile import router as profile_router
 from app.core.config import get_settings
 
@@ -18,3 +19,4 @@ app.add_middleware(
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(opportunities_router, prefix="/api/v1")
 app.include_router(profile_router, prefix="/api/v1")
+app.include_router(places_router, prefix="/api/v1")
