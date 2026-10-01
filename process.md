@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — docs: explain Vercel hub environment setup
+
+- Roadmap phase / status: Production authentication diagnosis; fix pending authorization to store the existing hub keys in Vercel.
+- Intent: Explain why the deployed app cannot start hosted sign-in and record the required Production configuration.
+- Files changed: README and process log.
+- Behavior or architecture changed: No runtime change. Documented five Production variables and the production callback URI.
+- Checks run and results: `https://intern.minkoi.org/auth/login?provider=google` returned HTTP 500. Vercel logs reported `INFRA_SECRET_KEY is not set`. Vercel's project environment list contained only older Supabase/FastAPI variables, and hub Settings showed Google and GitHub enabled. Official Vercel documentation confirms environment changes require a new deployment.
+- Limitations / risks: The Production hub secret is not yet stored in Vercel; login stays broken until authorization, environment setup, and redeployment are complete.
+- Next step: With approval, import the existing hub keys into Vercel Production and redeploy; then confirm the login route redirects to the hub.
+
 ### 2026-10-01 — docs: enable approved public demo view
 
 - Roadmap phase / status: Hosted sign-in, private profile schema, and hub-backed fictional catalog configured locally.

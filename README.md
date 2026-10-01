@@ -31,6 +31,20 @@ npm run dev
 
 Open `http://localhost:3001`. `/login` starts the hub's hosted email, Google, GitHub, or Microsoft sign-in. The app sends the user to `/auth/callback`, checks `state` and PKCE, and stores the resulting session in an httpOnly SameSite=Lax cookie. `proxy.ts` refreshes expiring tokens before requests reach route handlers.
 
+### Production on Vercel
+
+The Git repository does not contain `.env.local`. In the Vercel project for `intern.minkoi.org`, set these variables for **Production** before deploying:
+
+| Variable | Production value |
+| --- | --- |
+| `NEXT_PUBLIC_INFRA_URL` | `https://system.minkoi.org` |
+| `NEXT_PUBLIC_INFRA_PUBLISHABLE_KEY` | This project's `pk_live_` value from the hub handover |
+| `INFRA_SECRET_KEY` | This project's `sk_live_` value, stored as a server-only Secret |
+| `APP_URL` | `https://intern.minkoi.org` |
+| `HUB_PUBLIC_CATALOG_ENABLED` | `true` after the approved demo view is available |
+
+Create a new Production deployment after changing these values; an existing deployment keeps its old environment. The production callback is `https://intern.minkoi.org/auth/callback`. The hub hosts the Google and GitHub sign-in screens.
+
 ## Hub schema
 
 The hub project has two tables, both created through **Database → Schema** with `id`, `owner_id`, `created_at`, and owner policies:
