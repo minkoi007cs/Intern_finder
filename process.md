@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — docs: record completed hub schema setup
+
+- Roadmap phase / status: Hub schema and fictional seed complete; public view policy pending final confirmation.
+- Intent: Record the hub changes made after the user completed recent second-factor verification.
+- Files changed: README and process log.
+- Behavior or architecture changed: Added a unique index on `student_profiles.owner_id`, created the narrow `public_demo_opportunities` SQL view, and inserted 40 idempotent fictional listings into `opportunities`. The web feed still uses its bundled catalog because the anonymous view policy is not active.
+- Checks run and results: SQL Studio reported 0 rows affected for the index and view, and 40 rows affected for the seed statement.
+- Limitations / risks: The public-read policy remains pending action-time confirmation. No live opportunities were added.
+- Next step: Add and verify the view-only anonymous select policy, then enable hub catalog reads locally.
+
 ### 2026-10-01 — feat: connect active web app to app_system hub
 
 - Roadmap phase / status: Identity/profile integration in progress; public demo catalog remains available.
