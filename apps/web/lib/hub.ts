@@ -5,6 +5,7 @@
  * httpOnly cookie on this app's domain; the secret key (sk_) is read from a server env var and is
  * only ever sent to the hub, server to server. Do not import this file from a "use client" module.
  */
+import "server-only";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import type { NextResponse } from "next/server";
 
@@ -34,17 +35,12 @@ export function hubConfig() {
     hubUrl: required("NEXT_PUBLIC_INFRA_URL").replace(/\/+$/, ""),
     publishableKey,
     secretKey,
-    appUrl: (process.env.APP_URL ?? "http://localhost:3002").replace(/\/+$/, ""),
+    appUrl: (process.env.APP_URL ?? "http://localhost:3001").replace(/\/+$/, ""),
   };
 }
 
 export function callbackUri(): string {
   return `${hubConfig().appUrl}/auth/callback`;
-}
-
-/** Where the FastAPI backend lives, seen from this server. */
-export function backendUrl(): string {
-  return (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1").replace(/\/+$/, "");
 }
 
 const b64url = (buf: Buffer) => buf.toString("base64url");
@@ -180,4 +176,71 @@ export function setSession(response: NextResponse, pair: TokenPair): void {
 
 export function setFlow(response: NextResponse, flow: SignInFlow): void {
   response.cookies.set(FLOW_COOKIE, encode(flow), cookieOptions(FLOW_MAX_AGE));
+}
+
+/** Used by the Next.js proxy to pass a refreshed session to the current request. */
+export function encodedSession(pair: TokenPair): string {
+  return encode(pair);
+}
+
+export class HubApiError extends Error {
+  constructor(public readonly code: string, public readonly status: number, message: string) {
+    super(message);
+    this.name = "HubApiError";
+  }
+}
+
+export type DataFilter = { column: string; op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "ilike" | "in" | "not_in" | "is_null" | "is_not_null"; value?: string | number | boolean | string[] };
+export type DataSpec = {
+  action: "select" | "insert" | "update" | "delete";
+  select?: string[];
+  filters?: DataFilter[];
+  order?: { column: string; direction: "asc" | "desc" }[];
+  limit?: number;
+  values?: Record<string, string | number | boolean | null>[];
+};
+
+/** Every hub HTTP call stays in this server-only module. */
+async function hubJson<T>(path: string, key: string, accessToken?: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    authorization: `Bearer ${key}`,
+    accept: "application/json",
+  };
+  if (accessToken) headers["x-infra-access-token"] = accessToken;
+  if (body !== undefined) headers["content-type"] = "application/json";
+  let response: Response;
+  try {
+    response = await fetch(`${hubConfig().hubUrl}${path}`, {
+      method: body === undefined ? "GET" : "POST",
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
+    });
+  } catch {
+    throw new HubApiError("NETWORK_ERROR", 503, "The hub is unavailable. Please try again.");
+  }
+  const parsed: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = parsed && typeof parsed === "object" && "error" in parsed ? (parsed as { error: unknown }).error : null;
+    const details = error && typeof error === "object" ? error as { code?: unknown; message?: unknown } : null;
+    throw new HubApiError(
+      typeof details?.code === "string" ? details.code : "HUB_ERROR",
+      response.status,
+      typeof details?.message === "string" ? details.message : "The hub could not complete this request.",
+    );
+  }
+  if (!parsed || typeof parsed !== "object" || !("data" in parsed)) {
+    throw new HubApiError("INVALID_RESPONSE", 502, "The hub returned an unexpected response.");
+  }
+  return (parsed as { data: T }).data;
+}
+
+export async function hubMe(accessToken: string): Promise<{ user: { id: string; email: string | null; name: string | null } } | null> {
+  return hubJson("/api/v1/me", hubConfig().publishableKey, accessToken);
+}
+
+export async function hubData<Row extends Record<string, unknown>>(table: string, spec: DataSpec, accessToken?: string): Promise<{ rows: Row[]; rowCount: number }> {
+  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(table)) throw new HubApiError("INVALID_TABLE", 400, "Invalid table name.");
+  return hubJson(`/api/v1/data/${table}`, hubConfig().publishableKey, accessToken, spec);
 }

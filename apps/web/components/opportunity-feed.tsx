@@ -93,7 +93,7 @@ export default function OpportunityFeed() {
   function explain(reason: unknown): string {
     return reason instanceof Error && reason.message.includes("(401)")
       ? "Your session has expired. Sign in again to load your recommendations."
-      : "The opportunity API is unavailable. Start the backend, apply migrations, and seed demo data.";
+      : "The opportunity feed is unavailable. Please try again.";
   }
 
   useEffect(() => {

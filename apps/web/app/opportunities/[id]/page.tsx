@@ -52,7 +52,7 @@ export default function OpportunityDetail({ params }: { params: Promise<{ id: st
     <main className="min-h-screen bg-[#f8fafc] px-6 py-8 md:px-10">
       <div className="mx-auto max-w-4xl">
         <Link href="/opportunities" className="rounded text-sm font-bold text-indigo-700 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">← Back to opportunities</Link>
-        {error ? <div className="mt-8 rounded-3xl bg-white p-8 text-slate-700" role="alert">This demo listing is unavailable. Check that the API is running or return to the feed.</div> : !opportunity || !match ? <div className="mt-8 rounded-3xl bg-white p-8 text-slate-600" role="status">Loading opportunity…</div> :
+        {error ? <div className="mt-8 rounded-3xl bg-white p-8 text-slate-700" role="alert">This demo listing is unavailable. Return to the feed and try again.</div> : !opportunity || !match ? <div className="mt-8 rounded-3xl bg-white p-8 text-slate-600" role="status">Loading opportunity…</div> :
           <article className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm md:p-12">
             <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-amber-900">Fictional demo listing</span>
             <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-950 md:text-5xl">{opportunity.title}</h1>

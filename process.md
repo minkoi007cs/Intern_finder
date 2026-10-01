@@ -17,6 +17,17 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — feat: connect active web app to app_system hub
+
+- Roadmap phase / status: Identity/profile integration in progress; public demo catalog remains available.
+- Intent: Use the new `intern_finder` hub project for hosted sign-in and owner-scoped student profiles while keeping the opportunity demo usable during hub policy setup.
+- Files changed: Next.js hub client, proxy, profile and catalog routes, demo scoring/data, local city lookup, environment example, README, and architecture note. Created `student_profiles` and `opportunities` in the hub console.
+- Behavior or architecture changed: The active Next.js app runs on port 3001, exchanges PKCE authorization codes server-side, refreshes sessions in the Next.js proxy, persists profiles through the hub data API, and serves a bundled fictional catalog while the hub `opportunities` table is empty or inaccessible. The previous FastAPI implementation is retained but no longer used by the web app.
+- Checks run and results: `npm run typecheck` and `npm run build` passed. Local HTTP checks returned 40 fictional recommendations, unauthenticated profile access returned 401, and city suggestions returned results. Hosted hub sign-in reached the profile page. No profile write was made with personal data.
+- Limitations / risks: Automatic approval review blocked adding a public-read policy because it exposes every column of `opportunities`; the policy needs explicit user approval. The hub required a fresh second-factor check before adding a unique profile index or seeding the empty catalog table. Resume upload, live listing ingestion, and application tracking are not part of this integration.
+- Next step: Complete the hub's second-factor check, add the profile index and demo seed, obtain approval for public demo reads, verify private profile save with a user-entered profile, and deploy when requested.
+
+
 ### 2026-09-22 — docs: define OpportunityOS architecture and development log
 
 - Roadmap phase / status: Phase 0, completed for the initial architecture and process baseline.

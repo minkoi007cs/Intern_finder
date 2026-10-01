@@ -1,10 +1,12 @@
-import { backendFetch } from "./auth";
-import type { FeedFilters, Opportunity, Place, Recommendation, RecommendationPage } from "./types";
+import type { FeedFilters, Place, Recommendation, RecommendationPage } from "./types";
 
-/** Public, read-only backend routes — same-origin through /api/backend (see its route.ts). */
+/** Public demo and private recommendation routes on this Next.js server. */
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`/api/backend${path}`, { cache: "no-store", credentials: "same-origin", signal });
-  if (!response.ok) throw new Error(`API request failed (${response.status})`);
+  const response = await fetch(path, { cache: "no-store", credentials: "same-origin", signal });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { error?: { message?: string } } | null;
+    throw new Error(body?.error?.message ?? `Request failed (${response.status})`);
+  }
   return (await response.json()) as T;
 }
 
@@ -19,32 +21,28 @@ function feedQuery(filters: FeedFilters, offset: number): string {
 }
 
 export function getDemoRecommendations(filters: FeedFilters, offset = 0): Promise<RecommendationPage> {
-  return getJson<RecommendationPage>(`/demo/recommendations?${feedQuery(filters, offset)}`);
+  return getJson<RecommendationPage>(`/api/catalog/recommendations?${feedQuery(filters, offset)}`);
 }
 
-/** City suggestions for the profile form (offline list on the backend). */
+/** City suggestions from a bundled GeoNames list. */
 export async function searchPlaces(q: string, signal?: AbortSignal): Promise<{ items: Place[]; attribution: string }> {
-  return getJson<{ items: Place[]; attribution: string }>(`/places?${new URLSearchParams({ q, limit: "8" }).toString()}`, signal);
-}
-
-export function getOpportunity(id: string): Promise<Opportunity> {
-  return getJson<Opportunity>(`/opportunities/${encodeURIComponent(id)}`);
+  return getJson<{ items: Place[]; attribution: string }>(`/api/places?${new URLSearchParams({ q, limit: "8" }).toString()}`, signal);
 }
 
 export function getDemoRecommendation(id: string): Promise<Recommendation> {
-  return getJson<Recommendation>(`/demo/recommendations/${encodeURIComponent(id)}`);
+  return getJson<Recommendation>(`/api/catalog/recommendations/${encodeURIComponent(id)}`);
 }
 
 /** null → signed in but no profile yet. */
 export async function getPersonalRecommendations(filters: FeedFilters, offset = 0): Promise<RecommendationPage | null> {
-  const response = await backendFetch(`/recommendations?${feedQuery(filters, offset)}`);
+  const response = await fetch(`/api/catalog/recommendations?personal=true&${feedQuery(filters, offset)}`, { cache: "no-store", credentials: "same-origin" });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Could not load recommendations (${response.status})`);
   return (await response.json()) as RecommendationPage;
 }
 
 export async function getPersonalRecommendation(id: string): Promise<Recommendation> {
-  const response = await backendFetch(`/recommendations/${encodeURIComponent(id)}`);
+  const response = await fetch(`/api/catalog/recommendations/${encodeURIComponent(id)}?personal=true`, { cache: "no-store", credentials: "same-origin" });
   if (!response.ok) throw new Error(`Could not load recommendation (${response.status})`);
   return (await response.json()) as Recommendation;
 }

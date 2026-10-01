@@ -1,5 +1,3 @@
-import { backendFetch } from "./auth";
-
 export type ProfilePayload = {
   full_name: string;
   university: string;
@@ -20,18 +18,23 @@ export type ProfilePayload = {
 };
 
 export async function getProfile(): Promise<ProfilePayload | null> {
-  const response = await backendFetch("/profile");
+  const response = await fetch("/api/profile", { cache: "no-store", credentials: "same-origin" });
   if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`Could not load profile (${response.status})`);
+  if (!response.ok) throw new Error(await profileError(response));
   return (await response.json()) as ProfilePayload;
 }
 
 export async function putProfile(data: ProfilePayload): Promise<ProfilePayload> {
-  const response = await backendFetch("/profile", {
+  const response = await fetch("/api/profile", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error(`Could not save profile (${response.status})`);
+  if (!response.ok) throw new Error(await profileError(response));
   return (await response.json()) as ProfilePayload;
+}
+
+async function profileError(response: Response): Promise<string> {
+  const body = await response.json().catch(() => null) as { error?: { message?: string } } | null;
+  return body?.error?.message ?? "Could not save your profile. Please try again.";
 }

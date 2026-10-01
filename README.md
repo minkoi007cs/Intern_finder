@@ -1,61 +1,53 @@
-[![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.11-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-App_Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_Postgres-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![Alembic](https://img.shields.io/badge/Alembic-Migrations-red?style=for-the-badge)](https://alembic.sqlalchemy.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+# OpportunityOS / Intern Finder
 
-# OpportunityOS
+OpportunityOS helps students explore internships, research roles, scholarships, and hackathons. Listings in this prototype are **fictional examples**, without real application links. The match percentage describes compatibility with a profile, not the chance of receiving an offer.
 
-AI-assisted opportunity discovery for university students. The current prototype includes the architecture, API foundation, a responsive landing page, a demo opportunity feed with explainable compatibility scores, and a Supabase-backed private student profile. See [tech.md](./tech.md) for the complete design and roadmap, and [process.md](./process.md) for the commit log.
+## Current architecture
 
-The catalog contains **fictional examples only**. It does not ingest live openings or provide application links. See [AUDIT.md](./AUDIT.md) for the UI, UX and logic review, fixes and remaining product limitations.
+- `apps/web`: Next.js App Router app on `http://localhost:3001`. This is the active application.
+- [app_system hub](https://system.minkoi.org): hosted sign-in, PostgreSQL data API, and row permissions for the `intern_finder` project.
+- `apps/api`: earlier FastAPI and SQLAlchemy implementation, retained as a reference. The current web app does not call or require it.
 
-## Local development
+The web server never connects directly to PostgreSQL. All hub HTTP requests are in `apps/web/lib/hub.ts`, which is server-only. Browser components call same-origin Next.js routes. The `INFRA_SECRET_KEY` is used only by the server for the authorization-code exchange and refresh.
 
-Requirements: Node.js 22 or later, Python 3.11 or later. PostgreSQL is the target database; the default SQLite URL is for local development only.
+## Run locally
 
-```bash
-cp .env.example .env
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-alembic upgrade head
-python -m app.ingestion.seed_demo
-uvicorn app.main:app --reload
+Requirements: Node.js 22 or later. In the hub, open **intern_finder → Quickstart → Get keys** and redeem its one-time handover code into `apps/web/.env.local`. Do not commit or share that file. It should contain:
+
+```text
+NEXT_PUBLIC_INFRA_URL=https://system.minkoi.org
+NEXT_PUBLIC_INFRA_PUBLISHABLE_KEY=pk_…
+INFRA_SECRET_KEY=sk_…
+APP_URL=http://localhost:3001
 ```
 
-In another terminal:
+Then:
 
 ```bash
-cd frontend
-npm install
+cd apps/web
+npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000` for the landing page and `/opportunities` for the demo feed. The API health endpoint is `http://localhost:8000/api/v1/health`, and OpenAPI documentation is at `http://localhost:8000/docs`. The seed command is idempotent and adds 20 internship, 10 research, 5 scholarship, and 5 hackathon **fictional** records.
+Open `http://localhost:3001`. `/login` starts the hub's hosted email, Google, GitHub, or Microsoft sign-in. The app sends the user to `/auth/callback`, checks `state` and PKCE, and stores the resulting session in an httpOnly SameSite=Lax cookie. `proxy.ts` refreshes expiring tokens before requests reach route handlers.
 
-Rerun the seed command periodically to refresh the dates of existing demo records.
+## Hub schema
 
-## Verification
+The hub project has two tables, both created through **Database → Schema** with `id`, `owner_id`, `created_at`, and owner policies:
+
+| Table | Additional columns | Use |
+| --- | --- | --- |
+| `student_profiles` | `full_name`, `university`, `major`, `academic_year`, `profile_json` | Private, editable profile. Arrays and optional fields are serialized into `profile_json` because the hub data API accepts scalar values. |
+| `opportunities` | `title`, `organization`, `opportunity_type`, `remote_type`, `deadline`, `is_demo`, `details_json` | Public-facing listing data; currently empty. |
+
+The public-read policy for `opportunities` is pending explicit approval. Until the policy and catalog rows are added, the feed uses 40 clearly labelled fictional records bundled with the web server. After the policy and rows are ready, set `HUB_PUBLIC_CATALOG_ENABLED=true` in the web environment. A public-read policy must be limited to `is_demo = true` and must never be applied to `student_profiles`.
+
+## Checks
 
 ```bash
-cd backend && python -m pytest -q
-cd ../frontend && npm ci && npm run typecheck && npm run build
+cd apps/web
+npm run typecheck
+npm run build
 ```
 
-CI runs these checks for pushes and pull requests.
-
-## Configuration
-
-Copy the variables from `.env.example`; never commit actual credentials. Set `NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `frontend/.env.local` to enable sign-in. The key must be a public/publishable key, never a service-role key. Set `SUPABASE_URL` in the backend `.env` to the same project's HTTPS URL. The backend verifies access tokens against that project's asymmetric JWT signing keys; projects still using an HS256 shared secret need a signing-key migration before private profile routes work. Configure email/password and Google in Supabase Auth, including `http://localhost:3000/profile` as an OAuth redirect URL. When using Supabase PostgreSQL, set `DATABASE_URL` to a `postgresql+psycopg://` connection URL. Private profile tables deny direct `anon` and `authenticated` Data API access; the FastAPI backend owns those queries.
-
-The public demo works without Supabase credentials. After configuring Auth, sign in at `/login`, edit your profile at `/profile`, then open `/opportunities` to see scores based on your saved skills and interests. The opportunities themselves remain fictional demo records.
-
-## Privacy and data provenance
-
-This project will keep resumes private and require review before any parsed data becomes a profile. Demo opportunities must be labeled and are not live offers. Compatibility scores describe profile alignment, not the chance of getting hired.
-
-## Roadmap
-
-The phased roadmap, schema, API, matching rules, and acceptance gates are in [tech.md](./tech.md). The first current milestone is a running frontend and backend foundation.
+The current prototype has no resume upload, verified live opportunity ingestion, or application tracking. See [tech.md](./tech.md) for the longer product roadmap. The older [AUDIT.md](./AUDIT.md) describes the FastAPI version of the prototype.
