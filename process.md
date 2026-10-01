@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — fix: allow Production login and harden deploy flow
+
+- Roadmap phase / status: Production hosted sign-in is reachable; the active product remains a fictional demo with private profile support.
+- Intent: Remove the hub origin rejection, audit the deployed UI and active Next.js code, and address immediate login and navigation issues.
+- Files changed: Hub Allowed Origins setting outside Git; `apps/web/lib/hub.ts`, `apps/web/app/page.tsx`, `README.md`, and `AUDIT_HUB_VERCEL_2026-10-01.md`.
+- Behavior or architecture changed: Registered `https://intern.minkoi.org` alongside localhost in the hub; restricted post-login return paths to the app origin; required `APP_URL`; added a session-aware home sign-in/profile link; documented the hub deployment step.
+- Checks run and results: Hub Overview retained both origins after reload. The live browser showed a signed-in profile page and 40 labeled fictional feed records. Code and UI were inspected; `git diff --check` was used before commit. No automated test or build was run.
+- Limitations / risks: Profile save and token refresh across Vercel instances were not exercised. The process-local refresh deduplication may not protect against simultaneous requests on separate instances. The source edits still require a Vercel deployment.
+- Next step: Push the changes, confirm Vercel deploys the new commit, then ask the user to save a profile and report any callback or refresh error.
+
 ### 2026-10-01 — docs: record Production hub auth repair
 
 - Roadmap phase / status: Production hosted sign-in starts successfully; full user login and profile save remain for the user to check.

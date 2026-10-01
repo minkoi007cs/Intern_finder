@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { decodeSession, SESSION_COOKIE } from "@/lib/hub";
 
 const categories = [
   { icon: "✳", title: "Internships", text: "Find early-career roles that fit what you know now." },
@@ -6,7 +8,9 @@ const categories = [
   { icon: "✦", title: "Beyond work", text: "Explore scholarships, hackathons, and local opportunities." },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = decodeSession((await cookies()).get(SESSION_COOKIE)?.value);
+  const signedIn = session !== null && session.expiresAt > Date.now();
   return (
     <main className="min-h-screen bg-[#f8fafc]">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-10">
@@ -14,9 +18,10 @@ export default function Home() {
           <span className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-lg text-white">✳</span>
           OpportunityOS
         </Link>
-        <nav className="flex items-center gap-4 text-sm font-semibold text-slate-600" aria-label="Primary navigation">
+        <nav className="flex items-center gap-2 text-sm font-semibold text-slate-600 sm:gap-4" aria-label="Primary navigation">
           <a href="#how-it-works" className="hidden hover:text-indigo-600 sm:inline">How it works</a>
-          <Link href="/opportunities" className="rounded-full bg-slate-900 px-4 py-2.5 text-xs text-white transition hover:bg-indigo-600 sm:px-5 sm:py-3 sm:text-sm">Explore demo</Link>
+          <Link href={signedIn ? "/profile" : "/login"} className="rounded px-2 py-2 text-xs text-indigo-700 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 sm:text-sm">{signedIn ? "My profile" : "Sign in"}</Link>
+          <Link href="/opportunities" className="rounded-full bg-slate-900 px-3 py-2.5 text-xs text-white transition hover:bg-indigo-600 sm:px-5 sm:py-3 sm:text-sm"><span className="sm:hidden">Explore</span><span className="hidden sm:inline">Explore demo</span></Link>
         </nav>
       </header>
 

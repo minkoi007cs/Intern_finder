@@ -35,7 +35,7 @@ export function hubConfig() {
     hubUrl: required("NEXT_PUBLIC_INFRA_URL").replace(/\/+$/, ""),
     publishableKey,
     secretKey,
-    appUrl: (process.env.APP_URL ?? "http://localhost:3001").replace(/\/+$/, ""),
+    appUrl: required("APP_URL").replace(/\/+$/, ""),
   };
 }
 
@@ -47,8 +47,13 @@ const b64url = (buf: Buffer) => buf.toString("base64url");
 
 /** Only a path on this app — never `//evil.example` or an absolute URL. */
 export function safeNext(value: unknown): string {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return "/";
-  return value;
+  if (typeof value !== "string" || !value.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(value)) return "/";
+  try {
+    const target = new URL(value, "https://app.invalid");
+    return target.origin === "https://app.invalid" ? `${target.pathname}${target.search}${target.hash}` : "/";
+  } catch {
+    return "/";
+  }
 }
 
 export function authorizeRequest(provider: string | null, next: string): { url: string; flow: SignInFlow } {
@@ -164,7 +169,7 @@ function cookieOptions(maxAge: number) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: (process.env.APP_URL ?? "").startsWith("https://"),
+    secure: required("APP_URL").startsWith("https://"),
     path: "/",
     maxAge,
   };

@@ -45,6 +45,8 @@ The Git repository does not contain `.env.local`. In the Vercel project for `int
 
 Create a new Production deployment after changing these values; an existing deployment keeps its old environment. The production callback is `https://intern.minkoi.org/auth/callback`. The hub hosts the Google and GitHub sign-in screens.
 
+In the hub, open **intern_finder → Overview → Allowed browser origins (CORS)** and include `https://intern.minkoi.org` alongside `http://localhost:3001`. The hub rejects the authorization request before showing Google or GitHub if the callback's origin is missing. Saving an origin takes effect without a Vercel redeploy; changing `APP_URL` on Vercel requires a new deployment.
+
 ## Hub schema
 
 The hub project has two tables, both created through **Database → Schema** with `id`, `owner_id`, `created_at`, and owner policies:
