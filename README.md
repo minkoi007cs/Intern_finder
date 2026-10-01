@@ -40,7 +40,7 @@ The hub project has two tables, both created through **Database → Schema** wit
 | `student_profiles` | `full_name`, `university`, `major`, `academic_year`, `profile_json` | Private, editable profile. Arrays and optional fields are serialized into `profile_json` because the hub data API accepts scalar values. |
 | `opportunities` | `title`, `organization`, `opportunity_type`, `remote_type`, `deadline`, `is_demo`, `details_json` | Owner-scoped source table containing 40 fictional demo listings. |
 
-The hub now has a unique index on `student_profiles.owner_id` and the SQL view `public_demo_opportunities`, defined as `SELECT id, details_json FROM opportunities WHERE is_demo = true`. The view exposes no `owner_id` or profile fields. Its anonymous `select` policy is still pending final confirmation. Until that policy is active, the feed uses 40 clearly labelled fictional records bundled with the web server. After the policy is active and verified, set `HUB_PUBLIC_CATALOG_ENABLED=true` in the web environment. Never add public read access to `student_profiles`.
+The hub has a unique index on `student_profiles.owner_id` and the SQL view `public_demo_opportunities`, defined as `SELECT id, details_json FROM opportunities WHERE is_demo = true`. The view exposes no `owner_id` or profile fields. An anonymous `select` policy applies only to this view. The local web environment has `HUB_PUBLIC_CATALOG_ENABLED=true`, so the feed reads the 40 fictional records from the hub. The bundled fictional catalog remains a fallback if the hub is unavailable. Do not add public read access to `student_profiles`.
 
 ## Checks
 

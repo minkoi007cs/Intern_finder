@@ -2,7 +2,7 @@
 
 > Status: living architecture document. Update this file when an architectural decision, scope, API, schema, milestone, or acceptance criterion changes.
 
-> **Current implementation (2026-10-01):** `apps/web` is the active standalone Next.js app. It uses the app_system hub for hosted sign-in and private profile persistence. Hub PostgreSQL is never accessed directly by the app. The existing FastAPI/SQLAlchemy code in `apps/api` is retained as an earlier implementation reference; the architecture and roadmap below describe the original plan and need further revision before future milestones. The current hub schema has `student_profiles` and `opportunities`; public catalog access remains pending approval, so the web feed uses a bundled fictional demo catalog.
+> **Current implementation (2026-10-01):** `apps/web` is the active standalone Next.js app. It uses the app_system hub for hosted sign-in and private profile persistence. Hub PostgreSQL is never accessed directly by the app. The existing FastAPI/SQLAlchemy code in `apps/api` is retained as an earlier implementation reference; the architecture and roadmap below describe the original plan and need further revision before future milestones. The hub schema has `student_profiles`, `opportunities`, and a public-read view exposing only fictional demo records. The local web environment reads the demo catalog through the hub and falls back to bundled fictional data if the hub is unavailable.
 
 ## Mandatory development protocol
 

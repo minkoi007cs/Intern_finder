@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — docs: enable approved public demo view
+
+- Roadmap phase / status: Hosted sign-in, private profile schema, and hub-backed fictional catalog configured locally.
+- Intent: Finish the explicitly approved anonymous read policy on the narrow demo view and document the resulting setup.
+- Files changed: README, architecture note, and process log. Local `apps/web/.env.local` was updated but remains gitignored.
+- Behavior or architecture changed: Enabled anonymous `select` on `public_demo_opportunities` only; `opportunities` and `student_profiles` retain owner-only table policies. Set `HUB_PUBLIC_CATALOG_ENABLED=true` locally in both checkouts.
+- Checks run and results: Hub Access Control showed 9 policies and its visitor simulator allowed `select` on the demo view. A publishable-key HTTP request without a user token returned 40 view rows (200); the same request to `student_profiles` returned 401 `UNAUTHENTICATED`.
+- Limitations / risks: Catalog records are fictional. Profile persistence has not been confirmed with a user-entered profile; no deployment is configured here.
+- Next step: Have a user save a real profile and check it reopens correctly; deploy when requested.
+
 ### 2026-10-01 — docs: record completed hub schema setup
 
 - Roadmap phase / status: Hub schema and fictional seed complete; public view policy pending final confirmation.
