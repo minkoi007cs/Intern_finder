@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — fix: use write-scoped key for profile persistence
+
+- Roadmap phase / status: Production sign-in works; private profile persistence had an authorization error on save.
+- Intent: Repair profile insert and update through the hub data API after the user reported `key does not carry db:write for insert`.
+- Files changed: `apps/web/lib/hub.ts`, `apps/web/lib/student-server.ts`, README, and the hub/Vercel audit note.
+- Behavior or architecture changed: Server-side data reads keep using the publishable key. Insert, update, and delete require a signed-in access token and use the server-only secret key, while the hub still enforces owner policies. Profile updates now send a single object in `values`, as required by the hub query DSL.
+- Checks run and results: Reviewed the hub data route, key scopes, and query parser against the failing request. `git diff --check` was used before commit. No automated test, profile write, or build was run locally.
+- Limitations / risks: The user's profile data was not changed during the fix; they must save it after the new Vercel deployment is Ready. The long-lived refresh concurrency risk remains open.
+- Next step: Push to GitHub, confirm the Production deployment is Ready, and have the user retry Save profile.
+
 ### 2026-10-01 — fix: allow Production login and harden deploy flow
 
 - Roadmap phase / status: Production hosted sign-in is reachable; the active product remains a fictional demo with private profile support.

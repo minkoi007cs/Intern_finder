@@ -202,7 +202,7 @@ export type DataSpec = {
   filters?: DataFilter[];
   order?: { column: string; direction: "asc" | "desc" }[];
   limit?: number;
-  values?: Record<string, string | number | boolean | null>[];
+  values?: Record<string, string | number | boolean | null> | Record<string, string | number | boolean | null>[];
 };
 
 /** Every hub HTTP call stays in this server-only module. */
@@ -247,5 +247,8 @@ export async function hubMe(accessToken: string): Promise<{ user: { id: string; 
 
 export async function hubData<Row extends Record<string, unknown>>(table: string, spec: DataSpec, accessToken?: string): Promise<{ rows: Row[]; rowCount: number }> {
   if (!/^[a-z_][a-z0-9_]{0,62}$/.test(table)) throw new HubApiError("INVALID_TABLE", 400, "Invalid table name.");
-  return hubJson(`/api/v1/data/${table}`, hubConfig().publishableKey, accessToken, spec);
+  const config = hubConfig();
+  if (spec.action !== "select" && !accessToken) throw new HubApiError("UNAUTHENTICATED", 401, "Please sign in before changing data.");
+  const key = spec.action === "select" ? config.publishableKey : config.secretKey;
+  return hubJson(`/api/v1/data/${table}`, key, accessToken, spec);
 }

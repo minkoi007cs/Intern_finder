@@ -8,7 +8,7 @@ OpportunityOS helps students explore internships, research roles, scholarships, 
 - [app_system hub](https://system.minkoi.org): hosted sign-in, PostgreSQL data API, and row permissions for the `intern_finder` project.
 - `apps/api`: earlier FastAPI and SQLAlchemy implementation, retained as a reference. The current web app does not call or require it.
 
-The web server never connects directly to PostgreSQL. All hub HTTP requests are in `apps/web/lib/hub.ts`, which is server-only. Browser components call same-origin Next.js routes. The `INFRA_SECRET_KEY` is used only by the server for the authorization-code exchange and refresh.
+The web server never connects directly to PostgreSQL. All hub HTTP requests are in `apps/web/lib/hub.ts`, which is server-only. Browser components call same-origin Next.js routes. The server uses the publishable key for reads and the `INFRA_SECRET_KEY` for the authorization-code exchange, refresh, and owner-scoped data writes. Every private data call also sends the signed-in user's access token so hub row policies still apply.
 
 ## Run locally
 

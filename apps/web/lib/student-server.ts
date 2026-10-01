@@ -94,7 +94,7 @@ export async function saveProfile(accessToken: string, profile: ProfilePayload):
   };
   if (existing.rows[0]) {
     await hubData("student_profiles", {
-      action: "update", values: [values],
+      action: "update", values,
       filters: [{ column: "id", op: "eq", value: existing.rows[0].id }],
     }, accessToken);
   } else {
