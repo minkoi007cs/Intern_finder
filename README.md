@@ -40,7 +40,7 @@ The hub project has two tables, both created through **Database → Schema** wit
 | `student_profiles` | `full_name`, `university`, `major`, `academic_year`, `profile_json` | Private, editable profile. Arrays and optional fields are serialized into `profile_json` because the hub data API accepts scalar values. |
 | `opportunities` | `title`, `organization`, `opportunity_type`, `remote_type`, `deadline`, `is_demo`, `details_json` | Public-facing listing data; currently empty. |
 
-The public-read policy for `opportunities` is pending explicit approval. Until the policy and catalog rows are added, the feed uses 40 clearly labelled fictional records bundled with the web server. After the policy and rows are ready, set `HUB_PUBLIC_CATALOG_ENABLED=true` in the web environment. A public-read policy must be limited to `is_demo = true` and must never be applied to `student_profiles`.
+Public hub reads are pending explicit approval. The intended SQL view is `public_demo_opportunities`, defined as `SELECT id, details_json FROM opportunities WHERE is_demo = true`; it exposes no `owner_id` or profile fields. An anonymous `select` policy would apply to this view only. Until that view, policy, and seed rows are ready, the feed uses 40 clearly labelled fictional records bundled with the web server. After setup, set `HUB_PUBLIC_CATALOG_ENABLED=true` in the web environment. Never add public read access to `student_profiles`.
 
 ## Checks
 

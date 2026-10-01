@@ -74,13 +74,12 @@ function demoCatalog(): CatalogRecord[] {
   }));
 }
 
-/** The hub catalog is the source of truth once public demo reads are enabled and rows exist. */
+/** The hub view exposes only fictional listing fields once public demo reads are approved. */
 async function catalog(): Promise<CatalogRecord[]> {
   if (process.env.HUB_PUBLIC_CATALOG_ENABLED !== "true") return demoCatalog();
   try {
-    const result = await hubData<CatalogRow>("opportunities", {
-      action: "select", select: ["id", "details_json"],
-      filters: [{ column: "is_demo", op: "eq", value: true }], limit: 1000,
+    const result = await hubData<CatalogRow>("public_demo_opportunities", {
+      action: "select", select: ["id", "details_json"], limit: 1000,
     });
     const parsed = result.rows.flatMap((row) => {
       try {
