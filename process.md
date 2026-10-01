@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — docs: record Production hub auth repair
+
+- Roadmap phase / status: Production hosted sign-in starts successfully; full user login and profile save remain for the user to check.
+- Intent: Record the Vercel configuration that repaired HTTP 500 on `/auth/login`.
+- Files changed: Process log. Vercel Production environment variables and deployment were changed outside Git.
+- Behavior or architecture changed: Added `NEXT_PUBLIC_INFRA_URL`, `NEXT_PUBLIC_INFRA_PUBLISHABLE_KEY`, `INFRA_SECRET_KEY` as a Secret, `APP_URL=https://intern.minkoi.org`, and `HUB_PUBLIC_CATALOG_ENABLED=true` to the `intern-finder` Vercel project's Production environment. Redeployed commit `67ed2b8` without build cache.
+- Checks run and results: Vercel showed the new deployment Ready with `intern.minkoi.org` assigned. The Google and GitHub login routes each returned HTTP 303 to `https://system.minkoi.org/authorize` with `redirect_uri=https://intern.minkoi.org/auth/callback`; the flow cookie had `httpOnly` and `Secure` attributes. No key, token, or cookie value was printed.
+- Limitations / risks: The provider callback and a user profile save have not been completed end to end after redeployment. The catalog contains fictional demo records.
+- Next step: User signs in with Google or GitHub on the live site and saves a profile; inspect logs if the provider callback reports a new error.
+
 ### 2026-10-01 — docs: explain Vercel hub environment setup
 
 - Roadmap phase / status: Production authentication diagnosis; fix pending authorization to store the existing hub keys in Vercel.
