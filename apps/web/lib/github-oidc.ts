@@ -1,5 +1,5 @@
 import "server-only";
-import { createPublicKey, verify } from "node:crypto";
+import { createPublicKey, verify, type JsonWebKey } from "node:crypto";
 
 const ISSUER = "https://token.actions.githubusercontent.com";
 const AUDIENCE = "https://intern.minkoi.org/api/ingest/jobs";

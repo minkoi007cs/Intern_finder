@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — fix: use Node JWK type for sync verifier
+
+- Roadmap phase / status: First live-source deployment failed during TypeScript checking; correction pending redeploy.
+- Intent: Fix the GitHub OIDC verifier key type reported by Vercel.
+- Files changed: `apps/web/lib/github-oidc.ts`, process log.
+- Behavior or architecture changed: Import Node's `JsonWebKey` type so `createPublicKey` receives its expected shape with the index signature; signature checks and trust conditions are unchanged.
+- Checks run and results: Vercel compiled the previous commit but reported TS2345 at `createPublicKey` in the verifier; the Node type declaration was inspected to identify the mismatch. No local automated tests were run.
+- Limitations / risks: Production remains on the prior successful deployment until a new build is Ready. The sync workflow has not yet run.
+- Next step: Push the type correction and confirm Vercel Production builds successfully before starting the first sync.
+
 ### 2026-10-01 — feat: add hourly public internship source sync
 
 - Roadmap phase / status: Opportunity catalog ingestion implemented for a curated US student-job source set; first Production workflow run and live feed verification still pending.
