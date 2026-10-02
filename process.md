@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — fix: decode source descriptions before stripping markup
+
+- Roadmap phase / status: First Production sync succeeded; 105 imported live rows appeared in the feed, with some Greenhouse descriptions still showing encoded HTML tags.
+- Intent: Present source descriptions as plain text while preserving React's normal escaping.
+- Files changed: `apps/web/lib/job-sources.ts`, process log.
+- Behavior or architecture changed: Decode common HTML-encoded tag delimiters before removing markup and normalizing whitespace; the next source sync overwrites existing imported descriptions by stable ID.
+- Checks run and results: Vercel showed commit `6ff98fb` Ready on `intern.minkoi.org`; the first GitHub Actions workflow run completed all 15 source jobs successfully; the hub query reported 105 imported live rows; the live feed showed 105 results and exposed encoded tags in a National Life description. The official Greenhouse API response for that job begins with encoded markup. No automated tests were added or run.
+- Limitations / risks: Source descriptions are shortened to 2,400 characters; eligibility remains for the applicant to verify at the original employer page. The display correction still needs a deployment and a new sync.
+- Next step: Push the correction, wait for Production Ready, run the sync again, and confirm the rendered description is clean.
+
 ### 2026-10-01 — fix: use Node JWK type for sync verifier
 
 - Roadmap phase / status: First live-source deployment failed during TypeScript checking; correction pending redeploy.

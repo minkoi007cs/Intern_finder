@@ -46,9 +46,14 @@ function isUsLocation(location: string, title: string): boolean {
 const skillNames = ["Python", "JavaScript", "TypeScript", "React", "SQL", "Go", "Rust", "Java", "C++", "AWS", "Kubernetes", "Docker", "Machine Learning"];
 
 function cleanText(value: string): string {
-  return value.replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+  // Some boards HTML-encode an entire markup fragment, occasionally twice.
+  let decoded = value;
+  for (let pass = 0; pass < 2; pass++) {
+    decoded = decoded.replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+      .replace(/&#60;/g, "<").replace(/&#62;/g, ">").replace(/&amp;/gi, "&");
+  }
+  return decoded.replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
     .replace(/\s+/g, " ").trim().slice(0, 2400);
 }
