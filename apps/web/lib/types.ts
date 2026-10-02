@@ -12,6 +12,7 @@ export type Opportunity = {
   source_name: string;
   source_url: string | null;
   is_demo: boolean;
+  last_verified_at?: string;
   skills: { name: string; required: boolean }[];
 };
 
@@ -35,13 +36,15 @@ export type RecommendationPage = {
   limit: number;
   offset: number;
   next_offset: number | null;
+  catalog_mode: "live" | "demo";
 };
 
 export type FeedFilters = {
   q: string;
   opportunityType: string;
   remoteOnly: boolean;
-  sort: "match" | "deadline";
+  sort: "match" | "deadline" | "newest";
+  catalog: "live" | "demo";
 };
 
 export type Place = { label: string; city: string; state: string; latitude: number; longitude: number };

@@ -1,5 +1,5 @@
 import "server-only";
-import { hubData } from "./hub";
+import { hubData, hubQuery } from "./hub";
 import type { FeedFilters, Match, Opportunity, Recommendation, RecommendationPage } from "./types";
 import type { ProfilePayload } from "./profile";
 
@@ -12,6 +12,7 @@ type Features = {
 };
 type CatalogRecord = { opportunity: Opportunity; features: Features };
 type CatalogRow = Record<string, unknown> & { id: string; details_json: string };
+const LIVE_MAX_AGE_MS = 72 * 60 * 60 * 1000;
 
 const groups = [
   ["INTERNSHIP", 20, "Example Tech Studio", "Software Engineering Intern", "Build student-scale software projects with a fictional mentoring team."],
@@ -75,7 +76,7 @@ function demoCatalog(): CatalogRecord[] {
 }
 
 /** The hub view exposes only fictional listing fields once public demo reads are approved. */
-async function catalog(): Promise<CatalogRecord[]> {
+async function demoRecords(): Promise<CatalogRecord[]> {
   if (process.env.HUB_PUBLIC_CATALOG_ENABLED !== "true") return demoCatalog();
   try {
     const result = await hubData<CatalogRow>("public_demo_opportunities", {
@@ -93,6 +94,33 @@ async function catalog(): Promise<CatalogRecord[]> {
     // Until the hub's public-read policy is approved, the clearly labelled local demo stays usable.
   }
   return demoCatalog();
+}
+
+async function liveRecords(): Promise<CatalogRecord[]> {
+  const rows = await hubQuery<CatalogRow>(
+    "SELECT id, details_json FROM opportunities WHERE is_demo = false ORDER BY created_at DESC LIMIT 1000",
+  );
+  return rows.flatMap((row) => {
+    try {
+      const data = JSON.parse(row.details_json) as CatalogRecord & { last_verified_at?: string };
+      const job = data.opportunity;
+      const checkedAt = Date.parse(data.last_verified_at ?? "");
+      if (!job || job.is_demo !== false || !job.title || !job.application_url || !data.features ||
+          !Number.isFinite(checkedAt) || Date.now() - checkedAt > LIVE_MAX_AGE_MS || checkedAt > Date.now() + 300_000) return [];
+      return [{ ...data, opportunity: { ...job, id: row.id, last_verified_at: data.last_verified_at } }];
+    } catch { return []; }
+  });
+}
+
+async function catalog(selection: "live" | "demo"): Promise<{ records: CatalogRecord[]; mode: "live" | "demo" }> {
+  if (selection === "demo") return { records: await demoRecords(), mode: "demo" };
+  try {
+    const live = await liveRecords();
+    if (live.length) return { records: live, mode: "live" };
+  } catch {
+    // Keep the public sample usable if the hub is temporarily unavailable.
+  }
+  return { records: await demoRecords(), mode: "demo" };
 }
 
 const normalize = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -168,15 +196,18 @@ function matches(record: CatalogRecord, filters: FeedFilters): boolean {
 }
 
 export async function recommendations(filters: FeedFilters, offset: number, limit: number, profile?: ProfilePayload): Promise<RecommendationPage> {
-  const records = (await catalog()).filter((item) => matches(item, filters));
+  const { records: catalogRecords, mode } = await catalog(filters.catalog);
+  const records = catalogRecords.filter((item) => matches(item, filters));
   const student = profile ?? sample;
   const items = records.map((record) => ({ opportunity: record.opportunity, match: score(student, record) }));
   if (filters.sort === "deadline") items.sort((a, b) => (a.opportunity.deadline ?? "9999").localeCompare(b.opportunity.deadline ?? "9999") || b.match.overall_score - a.match.overall_score);
+  else if (filters.sort === "newest") items.sort((a, b) => (b.opportunity.posted_date ?? b.opportunity.last_verified_at ?? "").localeCompare(a.opportunity.posted_date ?? a.opportunity.last_verified_at ?? "") || b.match.overall_score - a.match.overall_score);
   else items.sort((a, b) => b.match.overall_score - a.match.overall_score || a.opportunity.title.localeCompare(b.opportunity.title));
-  return { items: items.slice(offset, offset + limit), total: items.length, offset, limit, next_offset: offset + limit < items.length ? offset + limit : null };
+  return { items: items.slice(offset, offset + limit), total: items.length, offset, limit, next_offset: offset + limit < items.length ? offset + limit : null, catalog_mode: mode };
 }
 
 export async function recommendation(id: string, profile?: ProfilePayload): Promise<Recommendation | null> {
-  const record = (await catalog()).find((item) => item.opportunity.id === id);
+  const records = id.startsWith("demo-") ? await demoRecords() : (await catalog("live")).records;
+  const record = records.find((item) => item.opportunity.id === id);
   return record ? { opportunity: record.opportunity, match: score(profile ?? sample, record) } : null;
 }

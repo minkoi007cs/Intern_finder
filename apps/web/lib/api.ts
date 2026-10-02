@@ -1,6 +1,6 @@
 import type { FeedFilters, Place, Recommendation, RecommendationPage } from "./types";
 
-/** Public demo and private recommendation routes on this Next.js server. */
+/** Public catalog and private recommendation routes on this Next.js server. */
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, { cache: "no-store", credentials: "same-origin", signal });
   if (!response.ok) {
@@ -13,7 +13,7 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 export const PAGE_SIZE = 20;
 
 function feedQuery(filters: FeedFilters, offset: number): string {
-  const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset), sort: filters.sort });
+  const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset), sort: filters.sort, catalog: filters.catalog });
   if (filters.q.trim()) params.set("q", filters.q.trim());
   if (filters.opportunityType !== "ALL") params.set("opportunity_type", filters.opportunityType);
   if (filters.remoteOnly) params.set("remote_only", "true");

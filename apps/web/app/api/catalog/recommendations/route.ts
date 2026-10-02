@@ -12,7 +12,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     q: (params.get("q") ?? "").slice(0, 100),
     opportunityType: (params.get("opportunity_type") ?? "ALL").toUpperCase(),
     remoteOnly: params.get("remote_only") === "true",
-    sort: params.get("sort") === "deadline" ? "deadline" : "match",
+    sort: params.get("sort") === "deadline" ? "deadline" : params.get("sort") === "newest" ? "newest" : "match",
+    catalog: params.get("catalog") === "demo" ? "demo" : "live",
   };
   const limit = Math.min(50, Math.max(1, Number(params.get("limit") ?? 20) || 20));
   const offset = Math.min(10000, Math.max(0, Number(params.get("offset") ?? 0) || 0));

@@ -252,3 +252,8 @@ export async function hubData<Row extends Record<string, unknown>>(table: string
   const key = spec.action === "select" ? config.publishableKey : config.secretKey;
   return hubJson(`/api/v1/data/${table}`, key, accessToken, spec);
 }
+
+/** Fixed, parameterized server queries for the public job catalog and its ingestion worker. */
+export async function hubQuery<Row extends Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<Row[]> {
+  return hubJson<Row[]>("/api/v1/query", hubConfig().secretKey, undefined, { sql, params });
+}

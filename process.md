@@ -17,6 +17,16 @@ This is the canonical log requested for `process.md` and `proccess.md`. Read it 
 
 ## Entries
 
+### 2026-10-01 — feat: add hourly public internship source sync
+
+- Roadmap phase / status: Opportunity catalog ingestion implemented for a curated US student-job source set; first Production workflow run and live feed verification still pending.
+- Intent: Replace the demo-only discovery path with current employer-source internships and early-career listings, while keeping samples clearly separate and avoiding unauthorized Handshake collection.
+- Files changed: Next.js source adapters, hub query helper, OIDC-protected sync route, catalog/feed/detail UI, GitHub Actions hourly schedule, README, architecture plan, and process log.
+- Behavior or architecture changed: GitHub Actions requests a short-lived signed OIDC token and runs each Greenhouse/Lever source separately at minute 17 hourly. The server verifies the workflow identity, fetches published US student roles, normalizes and upserts them into the existing hub `opportunities` table, and retires source listings that disappear. Live results require verification within 72 hours. Feed adds live/sample switching, recently posted/checked sorting, original application links, provenance, and freshness labels.
+- Checks run and results: Read official Greenhouse, Lever, GitHub Actions OIDC/schedule, Vercel cron, and Handshake terms. Read the existing hub schema through its server API and inspected candidate source boards for published student roles. No local automated tests or profile data changes were made.
+- Limitations / risks: GitHub schedule can be delayed or skipped; this is a curated set, not every employment site. Greenhouse does not provide a reliable publication date for all jobs, so those results use verification time. The first live workflow and Vercel deployment still need to run; Handshake requires an authorized integration. The hub raw-query endpoint bypasses row policies, so SQL is fixed and server-only and restricted to public `opportunities` data.
+- Next step: Commit and push, wait for Production Ready, manually start the first workflow, confirm imported live records appear, then monitor the first scheduled run.
+
 ### 2026-10-01 — fix: use write-scoped key for profile persistence
 
 - Roadmap phase / status: Production sign-in works; private profile persistence had an authorization error on save.

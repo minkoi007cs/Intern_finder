@@ -21,7 +21,7 @@ export default async function Home() {
         <nav className="flex items-center gap-2 text-sm font-semibold text-slate-600 sm:gap-4" aria-label="Primary navigation">
           <a href="#how-it-works" className="hidden hover:text-indigo-600 sm:inline">How it works</a>
           <Link href={signedIn ? "/profile" : "/login"} className="rounded px-2 py-2 text-xs text-indigo-700 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 sm:text-sm">{signedIn ? "My profile" : "Sign in"}</Link>
-          <Link href="/opportunities" className="rounded-full bg-slate-900 px-3 py-2.5 text-xs text-white transition hover:bg-indigo-600 sm:px-5 sm:py-3 sm:text-sm"><span className="sm:hidden">Explore</span><span className="hidden sm:inline">Explore demo</span></Link>
+          <Link href="/opportunities" className="rounded-full bg-slate-900 px-3 py-2.5 text-xs text-white transition hover:bg-indigo-600 sm:px-5 sm:py-3 sm:text-sm"><span className="sm:hidden">Explore</span><span className="hidden sm:inline">Explore openings</span></Link>
         </nav>
       </header>
 
@@ -34,7 +34,7 @@ export default async function Home() {
             <h1 className="mt-8 max-w-2xl text-4xl font-bold leading-[1.08] tracking-[-.055em] text-slate-950 sm:text-5xl md:text-7xl">Your potential is bigger than one job board.</h1>
             <p className="mt-7 max-w-xl text-lg leading-8 text-slate-600">Internships, research, scholarships, and more—brought together and matched to your skills, interests, and goals. See why each opportunity fits and what you can do next.</p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
-              <Link href="/opportunities" className="rounded-full bg-indigo-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700">Explore the demo <span aria-hidden="true">→</span></Link>
+              <Link href="/opportunities" className="rounded-full bg-indigo-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700">Explore openings <span aria-hidden="true">→</span></Link>
               <a href="#how-it-works" className="rounded-full border border-slate-200 bg-white px-7 py-4 text-sm font-bold text-slate-800 transition hover:border-indigo-300">See how it works</a>
             </div>
             <p className="mt-6 text-xs text-slate-500">Demo listings are examples, not live offers. Match scores show profile compatibility.</p>

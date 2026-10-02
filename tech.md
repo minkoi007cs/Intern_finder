@@ -2,7 +2,7 @@
 
 > Status: living architecture document. Update this file when an architectural decision, scope, API, schema, milestone, or acceptance criterion changes.
 
-> **Current implementation (2026-10-01):** `apps/web` is the active standalone Next.js app. It uses the app_system hub for hosted sign-in and private profile persistence. Hub PostgreSQL is never accessed directly by the app. The existing FastAPI/SQLAlchemy code in `apps/api` is retained as an earlier implementation reference; the architecture and roadmap below describe the original plan and need further revision before future milestones. The hub schema has `student_profiles`, `opportunities`, and a public-read view exposing only fictional demo records. The local web environment reads the demo catalog through the hub and falls back to bundled fictional data if the hub is unavailable.
+> **Current implementation (2026-10-01):** `apps/web` is the active standalone Next.js app. It uses the app_system hub for hosted sign-in, private profile persistence, and public-job catalog storage; hub PostgreSQL is never accessed directly. Greenhouse and Lever adapters are scheduled hourly through GitHub Actions with OIDC and write public listings through the hub query API. The hub schema still has `student_profiles`, `opportunities`, and a public-read view exposing only fictional demo records. The existing FastAPI/SQLAlchemy code in `apps/api` is an earlier reference; much of the original plan below has not been migrated to this active architecture.
 
 ## Mandatory development protocol
 
@@ -177,7 +177,7 @@ Milestones are ordered so each adds a usable capability. Status is changed only 
 | 0 — Planning | This architecture, schema/API contracts, roadmap, process log and Git repository | docs internally consistent; first log entry committed | Complete |
 | 1 — Foundation | Next.js/TypeScript/Tailwind shell, FastAPI API, config, DB connection, migration, `/health`, landing, README/.env.example | frontend builds; API starts; migration applies | In progress |
 | 2 — Identity/profile | Supabase email + Google sign-in, owner auth, onboarding/edit profile, skills/courses/projects | owner isolation tests; editable profile end to end | In progress: profile and skills, pending runtime verification/courses/projects |
-| 3 — Opportunity catalog | normalized schema, permitted/manual ingestion, demo seed, list/detail, provenance, duplicate and expiry rules | seed counts; API pagination; no stale/demo ambiguity | In progress: demo catalog only |
+| 3 — Opportunity catalog | normalized schema, permitted/manual ingestion, demo seed, list/detail, provenance, duplicate and expiry rules | seed counts; API pagination; no stale/demo ambiguity | In progress: Greenhouse/Lever source adapters and hourly scheduler added; live run pending verification |
 | 4 — Recommendations/feed | normalized skills, configurable weighted scorer, explanation, match/skill gaps, personalized feed | scorer unit tests and feed UI; score wording correct | In progress: sample profile only |
 | 5 — Resume | private PDF upload, local extraction, editable candidate confirmation and deletion | file validation and no direct save of parser output | Planned |
 | 6 — Search/maps | full-text/filter search, geodistance and radius, Leaflet map | distance tests; map/list consistency; remote handling | Planned |
