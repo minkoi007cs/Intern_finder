@@ -2,7 +2,7 @@ name: Sync public internships
 
 on:
   schedule:
-    - cron: "47 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -14,7 +14,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.freshness.outputs.should_run }}
+    steps:
+      - name: Check whether the catalog needs refreshing
+        id: freshness
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo 'should_run=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! CATALOG=$(curl --fail --silent --show-error --max-time 20 \
+            'https://intern.minkoi.org/api/catalog/recommendations?limit=1&catalog=live'); then
+            echo 'should_run=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          SHOULD_RUN=$(printf '%s' "$CATALOG" | python3 -c '
+          import datetime, json, sys
+          try:
+              data = json.load(sys.stdin)
+              item = data.get("items", [{}])[0]
+              stamp = item.get("opportunity", {}).get("last_verified_at")
+              verified = datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+              age = datetime.datetime.now(datetime.timezone.utc) - verified
+              print("true" if age >= datetime.timedelta(minutes=55) else "false")
+          except (IndexError, AttributeError, TypeError, ValueError):
+              print("true")
+          ')
+          echo "should_run=$SHOULD_RUN" >> "$GITHUB_OUTPUT"
+
   sync:
+    needs: gate
+    if: needs.gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
